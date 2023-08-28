@@ -98,6 +98,11 @@ defmodule GeneEvolve do
       {population_next, track_next} = run_init(population, track, fitness)
       generation_count = track_next["generationCount"]
 
+      # elitism
+      top_n = Enum.take(Enum.sort(population, fn x, y ->
+                        evaluate_fitness(x, fitness) >= evaluate_fitness(y, fitness) end), 5)
+      population_next = top_n ++ population_next
+
       if rem(generation_count, 1000) == 0 || track_next["bestFit"] > track["bestFit"] do
         IO.inspect(generation: generation_count, fitness: track_next["bestFit"])
       end
@@ -110,4 +115,4 @@ defmodule GeneEvolve do
   end
 end
 
-GeneEvolve.run_geneevolve("ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT", 90, 10000, 50)
+GeneEvolve.run_geneevolve("ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT", 90, 100, 50)
