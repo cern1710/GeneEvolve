@@ -19,7 +19,7 @@ defmodule GeneEvolve do
             |> Enum.take(population)
   end
 
-  defp mod3_run(string1, string2) do
+  defp evaluate_fitness(string1, string2) do
     len1 = String.length(string1)
     len2 = String.length(string2)
 
@@ -36,17 +36,17 @@ defmodule GeneEvolve do
 
 
 
-  defp mod4_run(list_in, fitness, fitness_percentile) do
-    list_p = Enum.map(list_in, &{mod3_run(&1, fitness), &1})
+  defp cull_unfit(list_in, fitness, fitness_percentile) do
+    list_p = Enum.map(list_in, &{evaluate_fitness(&1, fitness), &1})
     fitness_cutoff = trunc(length(list_p) * fitness_percentile)
     Enum.sort(list_p, fn {score1, _}, {score2, _} -> score1 < score2 end)
     |> Enum.drop(-fitness_cutoff)
     |> Enum.map(fn {_, string} -> string end)
   end
 
-  defp mod1_run(list_in, track_in, fitness) do
+  defp run_init(list_in, track_in, fitness) do
     # First, compute a list of tuples {score, string}
-    scored_list = Enum.map(list_in, &{mod3_run(&1, fitness), &1})
+    scored_list = Enum.map(list_in, &{evaluate_fitness(&1, fitness), &1})
 
     # Then find the string with the maximum score
     best_e = Enum.max_by(scored_list, fn {score, _string} -> score end)
@@ -95,7 +95,7 @@ defmodule GeneEvolve do
       IO.puts("Finished evolution with a best fit of #{track["bestFit"]}")
       track["generationCount"] * length(population)
     else
-      {population_next, track_next} = mod1_run(population, track, fitness)
+      {population_next, track_next} = run_init(population, track, fitness)
       generation_count = track_next["generationCount"]
 
       if rem(generation_count, 1000) == 0 || track_next["bestFit"] > track["bestFit"] do
@@ -103,7 +103,7 @@ defmodule GeneEvolve do
       end
 
       {time2, population_next} = :timer.tc(fn -> mutation(population_next, length(population_next)) end)
-      {time4, population_next} = :timer.tc(fn -> mod4_run(population_next, fitness, fitness_cutoff) end)
+      {time4, population_next} = :timer.tc(fn -> cull_unfit(population_next, fitness, fitness_cutoff) end)
 
       evolve(population_next, fitness, fitness_cutoff, track_next, elapsed_time + time2 + time4)
     end
