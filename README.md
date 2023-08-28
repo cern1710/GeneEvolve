@@ -1,6 +1,6 @@
 # GeneEvolve
 
-**TODO: Add description**
+A genetic algorithm for DNA sequences.
 
 ## Installation
 
